@@ -1,4 +1,4 @@
-import { useExecutionLogs } from '../../hooks/useAgents'
+import { useExecutionLogs, useTriggerAgentRun } from '../../hooks/useAgents'
 import { formatDuration, formatLogDate, formatTokens } from '../../lib/format'
 import { StatusBadge } from '../StatusBadge'
 
@@ -9,6 +9,7 @@ function average(nums: number[]): number {
 
 export function OverviewTab({ agentId }: { agentId: string }) {
   const { data: logs = [] } = useExecutionLogs(agentId)
+  const triggerRun = useTriggerAgentRun(agentId)
 
   const avgTokens = average(logs.map((l) => l.tokensUsed))
   const avgDuration = average(logs.map((l) => l.durationSeconds))
@@ -20,6 +21,14 @@ export function OverviewTab({ agentId }: { agentId: string }) {
         <StatCard label="平均 Tokens" sub="每次執行" value={formatTokens(avgTokens)} />
         <StatCard label="平均執行時長" sub="每次執行" value={formatDuration(Math.round(avgDuration))} />
       </div>
+
+      <button
+        onClick={() => triggerRun.mutate()}
+        disabled={triggerRun.isPending}
+        className="rounded-card bg-brand px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+      >
+        {triggerRun.isPending ? '執行中…' : '▶ 手動觸發執行'}
+      </button>
 
       <div>
         <h3 className="mb-2 text-sm font-medium text-text-secondary">執行紀錄</h3>

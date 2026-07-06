@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Agent } from '../../types'
 import { Toggle } from '../Toggle'
 import { MentionPill } from '../MentionPill'
+import { useUpdateAgent } from '../../hooks/useAgents'
 
 const AI_MODELS = ['Auto', 'claude-sonnet-5', 'claude-opus-4-8', 'claude-haiku-4-5']
 const MAX_ROUNDS_OPTIONS = [10, 20, 30, 50, 100]
@@ -28,6 +29,19 @@ export function SettingsTab({ agent }: { agent: Agent }) {
   const [scheduleEnabled, setScheduleEnabled] = useState(agent.scheduleEnabled)
   const [schedules, setSchedules] = useState(agent.scheduleCron)
   const [notificationsEnabled, setNotificationsEnabled] = useState(agent.notificationsEnabled)
+  const updateAgent = useUpdateAgent(agent.id)
+
+  function handleSave() {
+    updateAgent.mutate({
+      name,
+      instructions,
+      aiModel,
+      maxRounds,
+      scheduleEnabled,
+      scheduleCron: schedules,
+      notificationsEnabled,
+    })
+  }
 
   return (
     <div className="space-y-6">
@@ -107,6 +121,17 @@ export function SettingsTab({ agent }: { agent: Agent }) {
       <Field label="開啟通知">
         <Toggle checked={notificationsEnabled} onChange={setNotificationsEnabled} />
       </Field>
+
+      <div className="flex items-center gap-3">
+        <button
+          onClick={handleSave}
+          disabled={updateAgent.isPending}
+          className="rounded-card bg-brand px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+        >
+          儲存設定
+        </button>
+        {updateAgent.isSuccess && <span className="text-sm text-success">已儲存</span>}
+      </div>
     </div>
   )
 }
